@@ -80,8 +80,8 @@ export class GitHubHelper {
     private async findBaseSha(releaseIndex, releases, endSHA) {
         if (releaseIndex == -1) {
             const commits = await this.octokit.repos.listCommits({
-                owner: this.repo,
-                repo: this.owner,
+                owner: this.owner,
+                repo: this.repo,
                 sha: endSHA,
                 per_page: 100,
             });
@@ -95,8 +95,8 @@ export class GitHubHelper {
     private async rangedCommits(shaStart, shaEnd) {
         core.info("fetch commit range...");
         const commitsData = await this.octokit.repos.compareCommits({
-            owner: this.repo,
-            repo: this.owner,
+            owner: this.owner,
+            repo: this.repo,
             base: shaStart,
             head: shaEnd,
         });
