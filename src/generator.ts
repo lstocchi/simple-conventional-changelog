@@ -58,7 +58,7 @@ export class ChangelogBuilder {
             const commitTypeObject = this.commitTypes.find((value) => nameCommitType === value.type);
             if (commitTypeObject) {
                 const commitMessage = commitFullMessage.substring(colonIndex + 1).trim();
-                const message = commitMessage[0].toUpperCase() + commitMessage.split(1);
+                const message = commitMessage[0].toUpperCase() + commitMessage.substring(1);
                 if (!templateCategories.has(commitTypeObject.name)) {
                     templateCategories.set(commitTypeObject.name, [{ message, link }]);
                 } else {
