@@ -1,0 +1,28 @@
+name: Simple conventional changelog
+description: Generate a simple changelog based on conventional commits history for the latest tag.
+author: 'Luca Stocchi'
+branding:
+  icon: circle
+  color: blue
+inputs:
+  token:
+    description: Github repository token
+    required: true
+  current-tag:
+    description: Current tag selected to be the start of the changelog range
+    required: false
+  commit-mapping:
+    description: Conventional commit type mapping
+    required: true
+  template-path:
+    description: Changelog template
+    required: false
+  tag-regex:
+    description: Specific regex to filter tags by and to version just between these (useful for SemVer labels)
+    required: false
+outputs:
+  changelog:
+    description: Generated changelog for the latest push version tag
+runs:
+  using: node12
+  main: "dist/index.js"

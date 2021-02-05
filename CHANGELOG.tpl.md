@@ -1,0 +1,1 @@
+<SECTION>### $title</SECTION> <COMMITS>- $commit [link]($link)</COMMITS>
