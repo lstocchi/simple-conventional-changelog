@@ -14,6 +14,9 @@ inputs:
   commit-mapping:
     description: Conventional commit type mapping
     required: true
+  scopes-mapping:
+    description: Conventional commit type scopes mapping
+    required: false
   template-path:
     description: Changelog template
     required: false

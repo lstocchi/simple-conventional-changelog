@@ -6,6 +6,7 @@ import { GitHubHelper } from './githubHelper';
 export async function run(): Promise<void> {
     const token = core.getInput("token", { required: true });
     const commitTypes = core.getInput("commit-mapping", { required: true });
+    const typesScope = core.getInput("scopes-mapping", { required: false });
     const templateFilePath = core.getInput("template-path", { required: false });
     const tagRegex = core.getInput("tag-regex", { required: false });
     const currentTag = core.getInput("current-tag", { required: false });
@@ -27,7 +28,7 @@ export async function run(): Promise<void> {
 
     const githubHelper = new GitHubHelper(token, owner, repo, currentTag, tagRegex);
     const { commits, version } = await githubHelper.commitHistory();
-    const changelogBuilder = new ChangelogBuilder(commitTypes, templateFilePath);
+    const changelogBuilder = new ChangelogBuilder(commitTypes, typesScope, templateFilePath);
     const changelog = changelogBuilder.generate(version, commits);
     core.setOutput("changelog", changelog);
 }

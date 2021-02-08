@@ -1,28 +1,38 @@
 import * as core from '@actions/core';
 import * as fs from 'fs';
 import * as path from 'path';
-import { COMMIT, COMMITSTAG, LINK, SECTIONTAG, TITLE } from './constants';
+import { COMMIT, COMMITSTAG, LINK, SCOPETITLE, SECTIONTAG, SPACE, TITLE } from './constants';
 
+interface commitsByType {  
+  scope: string;
+  commits: {
+      message: string;
+      link: string;
+  }[];
+};
 
 export class ChangelogBuilder {
 
-    private commitTypes = [];
+    private commitTypes: Array<{ type: string, name: string }> = [];
+    private typeScopes: Array<{ type: string, name: string }> = [];
     private template: string = '';
 
-    constructor(commitTypesMapping: string, customTemplatePath?: string) {
+    constructor(commitTypesMapping: string, commitTypesScopeMapping?: string, customTemplatePath?: string) {
         this.commitTypes = this.extractCategories(commitTypesMapping);
+        this.typeScopes = this.extractCategories(commitTypesScopeMapping);
         this.template = this.getTemplate(customTemplatePath);
     }
 
-    private extractCategories(commitTypesMapping: string): Array<{ type: string, name: string}> {
-        const categories = commitTypesMapping.split(",");
-        return categories.map((element) => {
-          const category = element.split(":");
-          return {
-            type: category[0],
-            name: category[1] || '',
-          };
-        });
+    private extractCategories(commitTypesMapping: string): Array<{ type: string, name: string }> {
+      if (!commitTypesMapping) return [];
+      const categories = commitTypesMapping.split(",");
+      return categories.map((element) => {
+        const category = element.split(":");
+        return {
+          type: category[0],
+          name: category[1] || '',
+        };
+      });
     }
 
     private getTemplate(customTemplatePath?: string): string {
@@ -44,7 +54,7 @@ export class ChangelogBuilder {
         content = content.replace("{{date}}", new Date().toLocaleDateString()).replace("{{versionName}}", version);
       
         core.info("creating changelog template");
-        const templateCategories = new Map();
+        const templateCategories = new Map<string, commitsByType[]>();
         data.forEach((val) => {
             const tmpCommitMessage = val.commit.message;
             const colonIndex = tmpCommitMessage.indexOf(':');
@@ -54,16 +64,46 @@ export class ChangelogBuilder {
             const commitFullMessage = tmpCommitMessage.indexOf('\n') === -1 ? tmpCommitMessage : tmpCommitMessage.substring(0, tmpCommitMessage.indexOf('\n'));
             const link = val.html_url || '#';
           
-            const nameCommitType = commitFullMessage.substring(0, colonIndex);    
-            const commitTypeObject = this.commitTypes.find((value) => nameCommitType === value.type);
+            const nameCommitType = commitFullMessage.substring(0, colonIndex);
+            // get type + scope from nameCommitType
+            const scopeRgx = new RegExp(/\((.*?)\)/, 'g');
+            const scopeObj: RegExpExecArray = scopeRgx.exec(nameCommitType);
+            let scope = !scopeObj ? '' : scopeObj.length > 1 ? scopeObj[1] : scopeObj[0];
+            const parenthesisIndex = nameCommitType.indexOf('(');
+            const commitType = parenthesisIndex !== -1 ? nameCommitType.substring(0, parenthesisIndex) : nameCommitType;
+
+            const commitTypeObject = this.commitTypes.find((value) => commitType === value.type);
+            const commitScopeObject = this.typeScopes.find((value) => scope === value.type);
+            scope = commitScopeObject ? commitScopeObject.type : '';
+
             if (commitTypeObject) {
-                const commitMessage = commitFullMessage.substring(colonIndex + 1).trim();
-                const message = commitMessage[0].toUpperCase() + commitMessage.substring(1);
-                if (!templateCategories.has(commitTypeObject.name)) {
-                    templateCategories.set(commitTypeObject.name, [{ message, link }]);
+              const commitMessage = commitFullMessage.substring(colonIndex + 1).trim();
+              const message = commitMessage[0].toUpperCase() + commitMessage.substring(1);
+              let commits: commitsByType[];
+              if (!templateCategories.has(commitTypeObject.name)) {
+                commits = [{
+                  scope,
+                  commits: [{ message, link }]
+                }];
+              } else {
+                const tmpCommits = templateCategories.get(commitTypeObject.name);
+                if (tmpCommits.find(commits => commits.scope === scope)) {
+                  commits = tmpCommits
+                              .map(commits => {
+                                if (commits.scope === scope) {
+                                  commits.commits.push({message, link});
+                                } 
+                                return commits;                                              
+                              });
                 } else {
-                    templateCategories.get(commitTypeObject.name).push({ message, link });
-                }
+                  tmpCommits.push({
+                                    scope,
+                                    commits: [{ message, link }]
+                                  });
+                  commits = tmpCommits;
+                }                                
+              }
+              templateCategories.set(commitTypeObject.name, commits);
             }
         });
       
@@ -71,14 +111,25 @@ export class ChangelogBuilder {
         const commitsContentTemplate = this.getInnerContent(content, COMMITSTAG);
       
         const templateCategorySections = [];
-        templateCategories.forEach((commits, commitType) => {
+        templateCategories.forEach((commits, type) => {
           templateCategorySections.push(
-            `${sectionContentTemplate.replace(TITLE, commitType)}\n`
+            `${sectionContentTemplate.replace(TITLE, type)}\n`
           );
-          commits.forEach((commit) => {
-            templateCategorySections.push(
-              `${commitsContentTemplate.replace(COMMIT, commit.message).replace(LINK, commit.link)}\n`
-            );
+          commits
+            .sort((commitA,commitB) => commitA.scope.localeCompare(commitB.scope))
+            .forEach((scope) => {
+              let scopeTitle = '';
+              if (scope.scope !== '') {
+                scopeTitle = `- ####${scope.scope}\n`;
+              }
+              templateCategorySections.push(
+                `${commitsContentTemplate.replace(SCOPETITLE, scopeTitle)}`
+              );
+              scope.commits.forEach((commit) => {
+                templateCategorySections.push(
+                  `${commitsContentTemplate.replace(COMMIT, commit.message).replace(LINK, commit.link)}\n`
+                );
+              });
           });
           templateCategorySections.push(`\n`);
         });
