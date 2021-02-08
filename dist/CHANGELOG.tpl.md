@@ -1,1 +1,1 @@
-<SECTION>### $title</SECTION> <COMMITS>- $commit [link]($link)</COMMITS>
+<SECTION>### $title</SECTION> <COMMITS>$scopeTitle  - $commit [link]($link)</COMMITS>
