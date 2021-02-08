@@ -1,4 +1,5 @@
 export const SECTIONTAG = 'SECTION';
+export const SCOPETAG = 'SCOPE';
 export const COMMITSTAG = 'COMMITS';
 export const TITLE = '$title';
 export const SCOPETITLE = '$scopeTitle';

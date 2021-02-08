@@ -11,7 +11,7 @@ inputs:
   current-tag:
     description: Current tag selected to be the start of the changelog range
     required: false
-  commit-mapping:
+  types-mapping:
     description: Conventional commit type mapping
     required: true
   scopes-mapping:

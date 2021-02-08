@@ -5,7 +5,7 @@ import { GitHubHelper } from './githubHelper';
 
 export async function run(): Promise<void> {
     const token = core.getInput("token", { required: true });
-    const commitTypes = core.getInput("commit-mapping", { required: true });
+    const commitTypes = core.getInput("types-mapping", { required: true });
     const typesScope = core.getInput("scopes-mapping", { required: false });
     const templateFilePath = core.getInput("template-path", { required: false });
     const tagRegex = core.getInput("tag-regex", { required: false });

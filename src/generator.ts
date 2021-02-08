@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as fs from 'fs';
 import * as path from 'path';
-import { COMMIT, COMMITSTAG, LINK, SCOPETITLE, SECTIONTAG, SPACE, TITLE } from './constants';
+import { COMMIT, COMMITSTAG, LINK, SCOPETAG, SCOPETITLE, SECTIONTAG, SPACE, TITLE } from './constants';
 
 interface commitsByType {  
   scope: string;
@@ -108,6 +108,7 @@ export class ChangelogBuilder {
         });
       
         const sectionContentTemplate = this.getInnerContent(content, SECTIONTAG);
+        const scopeContentTemplate = this.getInnerContent(content, SCOPETAG);
         const commitsContentTemplate = this.getInnerContent(content, COMMITSTAG);
       
         const templateCategorySections = [];
@@ -118,13 +119,11 @@ export class ChangelogBuilder {
           commits
             .sort((commitA,commitB) => commitA.scope.localeCompare(commitB.scope))
             .forEach((scope) => {
-              let scopeTitle = '';
               if (scope.scope !== '') {
-                scopeTitle = `- ####${scope.scope}\n`;
+                templateCategorySections.push(
+                  `${scopeContentTemplate.replace(SCOPETITLE, scope.scope)}\n`
+                );
               }
-              templateCategorySections.push(
-                `${commitsContentTemplate.replace(SCOPETITLE, scopeTitle)}`
-              );
               scope.commits.forEach((commit) => {
                 templateCategorySections.push(
                   `${commitsContentTemplate.replace(COMMIT, commit.message).replace(LINK, commit.link)}\n`
