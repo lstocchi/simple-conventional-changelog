@@ -88,9 +88,7 @@ export class GitHubHelper {
     }
 
     private findPreviousReleaseIndex(releases, currentReleaseIndex) {
-        if (currentReleaseIndex === -1) {
-            return releases.length - 1;
-        } else if (!this.tagRegex) {
+        if (!this.tagRegex) {
             return releases.findIndex((_, index) => index > currentReleaseIndex);
         } else {
             const versionRegExp = new RegExp(`${this.tagRegex}`, "g");
