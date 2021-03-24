@@ -6,7 +6,7 @@ import { GitHub } from "@actions/github/lib/utils";
 export class GitHubHelper {
 
     private octokit: InstanceType<typeof GitHub>;
-    constructor(private token: string, private owner: any, private repo: string, private currentTag?: string, private tagRegex?: string) {
+    constructor(private token: string, private owner: any, private repo: string, private currentTag?: string, private tagRegex?: string, private defaultBranch?: string) {
         this.octokit = github.getOctokit(token);
     }
 
@@ -21,6 +21,15 @@ export class GitHubHelper {
           commits,
           versionName: commitRange.releaseName,
         };
+    }
+
+    private async findLatestCommit() {
+        const lastCommit = await this.octokit.repos.getCommit({
+            owner: this.owner,
+            repo: this.repo,
+            ref: this.defaultBranch
+        });
+        return lastCommit.data.sha;
     }
     
     public async releaseTags() {
@@ -44,7 +53,7 @@ export class GitHubHelper {
         core.info(`fetched all ${releases.length} releases.`);
         const currentReleaseIndex = this.findCurrentReleaseIndex(releases);
         core.info(`current release index: ${currentReleaseIndex}`);
-        const toSHA = releases[currentReleaseIndex].commit.sha;
+        const toSHA = await this.getToSHA(releases, currentReleaseIndex);
         core.info(`current release sha: "${toSHA}"`);
         const previousReleaseIndex = this.findPreviousReleaseIndex(
             releases,
@@ -60,16 +69,27 @@ export class GitHubHelper {
         };
     }
 
+    private async getToSHA(releases, index) {
+        if (index === -1) {
+            // get sha from latest commit
+            return await this.findLatestCommit();
+        } else {
+            return releases[index].commit.sha;
+        }
+    }
+
     private findCurrentReleaseIndex(releases) {
         if (!this.currentTag) {
-            return 0;
+            return -1;
         } else {
             return releases.findIndex((release, _) => release.name.includes(this.currentTag));
         }
     }
 
     private findPreviousReleaseIndex(releases, currentReleaseIndex) {
-        if (!this.tagRegex) {
+        if (currentReleaseIndex === -1) {
+            return releases.length - 1;
+        } else if (!this.tagRegex) {
             return releases.findIndex((_, index) => index > currentReleaseIndex);
         } else {
             const versionRegExp = new RegExp(`${this.tagRegex}`, "g");

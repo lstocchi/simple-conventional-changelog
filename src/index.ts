@@ -25,8 +25,9 @@ export async function run(): Promise<void> {
     // action payload data
     const owner = payload.organization ? payload.organization.login : payload.repository.owner.login;
     const repo = payload.repository.name;
+    const defaultBranch = payload.repository.default_branch;
 
-    const githubHelper = new GitHubHelper(token, owner, repo, currentTag, tagRegex);
+    const githubHelper = new GitHubHelper(token, owner, repo, currentTag, tagRegex, defaultBranch);
     const { commits, version } = await githubHelper.commitHistory();
     const changelogBuilder = new ChangelogBuilder(commitTypes, typesScope, templateFilePath);
     const changelog = changelogBuilder.generate(version, commits);
