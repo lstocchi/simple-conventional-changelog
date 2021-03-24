@@ -62,8 +62,9 @@ export class GitHubHelper {
         core.info(`previous release index: ${previousReleaseIndex}`);
         const fromSHA = await this.findBaseSha(previousReleaseIndex, releases, toSHA);
         core.info(`previous release sha: "${fromSHA}"`);
+        const name = releases[currentReleaseIndex] ? releases[currentReleaseIndex].name || '' : ''
         return {
-            releaseName: releases[currentReleaseIndex].name,
+            releaseName: name,
             fromSHA,
             toSHA,
         };
