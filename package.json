@@ -1,6 +1,6 @@
 {
   "name": "simple-conventional-changelog",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Simple action to create changelog using conventional commits",
   "main": "index.js",
   "scripts": {

@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
 import * as fs from 'fs';
 import * as path from 'path';
-import { COMMIT, COMMITSTAG, LINK, SCOPETAG, SCOPETITLE, SECTIONTAG, SPACE, TITLE } from './constants';
+import { COMMIT, COMMITSTAG, LINK, SCOPETAG, SCOPETITLE, SCOPE_SKIP_RELEASE, SECTIONTAG, SPACE, TITLE } from './constants';
 
 interface commitsByType {  
   scope: string;
@@ -19,7 +19,10 @@ export class ChangelogBuilder {
 
     constructor(commitTypesMapping: string, commitTypesScopeMapping?: string, customTemplatePath?: string) {
         this.commitTypes = this.extractCategories(commitTypesMapping);
-        this.typeScopes = this.extractCategories(commitTypesScopeMapping);
+        this.typeScopes = [
+          { type: SCOPE_SKIP_RELEASE, name: SCOPE_SKIP_RELEASE}, 
+          ...this.extractCategories(commitTypesScopeMapping)
+        ];        
         this.template = this.getTemplate(customTemplatePath);
     }
 
@@ -157,7 +160,7 @@ export class ChangelogBuilder {
     }
 
     private removeCommitsWithSkipReleaseScope(commits: commitsByType[]): commitsByType[] {
-      return commits.filter(commit => commit.scope.toLowerCase() !== 'skip-release');
+      return commits.filter(commit => commit.scope.toLowerCase() !== SCOPE_SKIP_RELEASE);
     }
 
     private addCommitToTemplate(templateCategorySections: string[], commits: { message: string; link: string; }[], commitsContentTemplate: string) {
