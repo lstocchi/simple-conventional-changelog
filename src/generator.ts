@@ -123,10 +123,15 @@ export class ChangelogBuilder {
         
       this.commitTypes.forEach((type) => {
         if (templateCategories.has(type.name)) {
-          const commits = templateCategories.get(type.name);
+          let commits = templateCategories.get(type.name);
+          // remove commits with skip-release scope
+          commits = this.removeCommitsWithSkipReleaseScope(commits);
+          if (commits.length === 0) {
+            return;
+          }
           templateCategorySections.push(
             `${sectionContentTemplate.replace(TITLE, type.name)}\n`
-          );
+          );          
           // add commits with no scope
           commits.filter(commit => commit.scope === '').forEach(commit => {
             this.addCommitToTemplate(templateCategorySections, commit.commits, commitsContentTemplate);
@@ -149,6 +154,10 @@ export class ChangelogBuilder {
       );
 
       return content;
+    }
+
+    private removeCommitsWithSkipReleaseScope(commits: commitsByType[]): commitsByType[] {
+      return commits.filter(commit => commit.scope.toLowerCase() !== 'skip-release');
     }
 
     private addCommitToTemplate(templateCategorySections: string[], commits: { message: string; link: string; }[], commitsContentTemplate: string) {
