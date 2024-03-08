@@ -24,7 +24,7 @@ export class GitHubHelper {
     }
 
     private async findLatestCommit() {
-        const lastCommit = await this.octokit.repos.getCommit({
+        const lastCommit = await this.octokit.rest.repos.getCommit({
             owner: this.owner,
             repo: this.repo,
             ref: this.defaultBranch
@@ -98,7 +98,7 @@ export class GitHubHelper {
 
     private async findBaseSha(releaseIndex, releases, endSHA) {
         if (releaseIndex == -1) {
-            const commits = await this.octokit.repos.listCommits({
+            const commits = await this.octokit.rest.repos.listCommits({
                 owner: this.owner,
                 repo: this.repo,
                 sha: endSHA,
@@ -113,7 +113,7 @@ export class GitHubHelper {
 
     private async rangedCommits(shaStart, shaEnd) {
         core.info("fetch commit range...");
-        const commitsData = await this.octokit.repos.compareCommits({
+        const commitsData = await this.octokit.rest.repos.compareCommits({
             owner: this.owner,
             repo: this.repo,
             base: shaStart,
