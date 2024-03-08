@@ -1,0 +1,31 @@
+name: Release Plugin
+
+#Only one job at a time
+concurrency: release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  # Prepare and publish the plugin to JetBrains Marketplace repository
+  release:
+    name: Publish to Marketplace
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      # Check out current repository
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+
+      - name: Simple conventional changelog
+        uses: ./
+        id: changelog
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          current-tag: 0.0.0
+          types-mapping: 'feat:Features,fix:Bug Fixes,docs:Documentation,refactor:Refactoring,build:Builds,chore:Other'
+      - name: Print Output
+        id: output
+        run: echo "${{ steps.changelog.outputs.time }}"
