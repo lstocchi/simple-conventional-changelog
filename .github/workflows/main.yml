@@ -24,7 +24,7 @@ jobs:
         id: changelog
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          current-tag: 0.0.0
+          current-tag: 0.0.1
           types-mapping: 'feat:Features,fix:Bug Fixes,docs:Documentation,refactor:Refactoring,build:Builds,chore:Other'
       - name: Print Output
         id: output
